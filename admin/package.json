@@ -1,0 +1,39 @@
+{
+  "name": "faizal-webnovel-laravel-lumen9-react-webpack-admin",
+  "version": "1.0.0",
+  "description": "React frontend Admin Dashboard for Lumen 9 webnovel website with Webpack",
+  "license": "MIT",
+  "author": "finnstrom3693",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "webpack serve --config webpack.config.js --mode development",
+    "build": "webpack --config webpack.config.js --mode production"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.8.4",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.487.0",
+    "postcss": "^8.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.30.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
+    "babel-loader": "^9.2.1",
+    "css-loader": "^6.11.0",
+    "dotenv-webpack": "^8.1.0",
+    "html-webpack-plugin": "^5.6.3",
+    "postcss-loader": "^7.3.4",
+    "postcss-preset-env": "^10.1.5",
+    "style-loader": "^3.3.4",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.1"
+  }
+}

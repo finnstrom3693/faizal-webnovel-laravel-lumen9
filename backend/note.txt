@@ -1,0 +1,12 @@
+make model and migration
+php artisan make:model YourModelName -m
+
+make migration
+php artisan make:migration create_novel_table
+
+make controller 
+php artisan make:controller NovelController
+
+migration
+php artisan migrate
+php artisan migrate:fresh
