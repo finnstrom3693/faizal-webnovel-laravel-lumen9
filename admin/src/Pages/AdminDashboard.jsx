@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, BarChart2, User, Users, FileText, Settings,
-  Bell, Search, ChevronRight, Eye, Edit, Trash2, Star, LogOut
+  Bell, Search, ChevronRight, Eye, Edit, Trash2, Star, LogOut, Languages
 } from 'lucide-react';
 import Navbar from '../Components/Navbar.jsx';
 import Sidebar from '../Components/Sidebar.jsx';
@@ -29,9 +29,10 @@ const AdminDashboard = () => {
   ];
 
   const stats = [
-    { title: "Total Novels", value: 246, icon: <BookOpen /> },
-    { title: "Users", value: "15.8K", icon: <Users /> },
-    { title: "Monthly Views", value: "1.2M", icon: <Eye /> },
+    { title: "Novels", value: 246, icon: <BookOpen size={20} /> },
+    { title: "Translated Novels", value: 246, icon: <Languages size={20} /> },
+    { title: "Users", value: "None", icon: <Users size={20} /> },
+    { title: "Monthly Views", value: "None", icon: <Eye size={20} /> },
   ];
 
   useEffect(() => {
@@ -59,7 +60,6 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Role check removed since it's not encoded in the token
         console.log("Authentication successful.");
         setLoading(false);
 
@@ -70,15 +70,8 @@ const AdminDashboard = () => {
       }
     };
 
-
     checkAuth();
   }, [navigate]);
-
-  const handleLogout = () => {
-    console.log("Logging out. Removing token.");
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
 
   if (loading) {
     return (
@@ -90,7 +83,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar onLogout={handleLogout} />
+      <Sidebar/>
 
       <div className="flex-1 overflow-auto">
         <Navbar activePage={activePage} userRole={userRole} />
@@ -99,7 +92,7 @@ const AdminDashboard = () => {
           {activePage === 'dashboard' && (
             <div className="space-y-6">
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
                   <div key={index} className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center">
@@ -107,7 +100,7 @@ const AdminDashboard = () => {
                         {stat.icon}
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm text-gray-500">{stat.title}</p>
+                        <p className="text-sm text-gray-500 whitespace-nowrap">{stat.title}</p>
                         <p className="text-xl font-bold">{stat.value}</p>
                       </div>
                     </div>

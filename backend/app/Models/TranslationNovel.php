@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Novel extends Model
+class TranslationNovel extends Model
 {
-    /**
+   /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -23,23 +23,14 @@ class Novel extends Model
         'featured'
     ];
 
-    protected $casts = [
-        'featured' => 'boolean',
-    ];
-    
+    protected $table = 'translation_novels'; // Explicit table name
 
-     /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'novels'; // Explicit table name
 
     /**
      * Get the chapters for the novel.
      */
     public function chapters(): HasMany
     {
-        return $this->hasMany(NovelChapter::class, 'novel_id');
+        return $this->hasMany(TranslationNovelChapter::class, 'novel_id');
     }
 }

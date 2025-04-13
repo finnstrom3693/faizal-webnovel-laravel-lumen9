@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('novel_chapters', function (Blueprint $table) {
+        Schema::create('translation_novel_chapters', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->unsignedBigInteger('novel_id')->index(); // add index for foreign key
@@ -21,8 +21,11 @@ return new class extends Migration
             $table->text('content');
             $table->timestamps();
         
-            $table->foreign('novel_id')->references('id')->on('novels')->onDelete('cascade');
-        });        
+            $table->foreign('novel_id')
+                  ->references('id')
+                  ->on('translation_novels')
+                  ->onDelete('cascade');
+        });   
     }
 
     /**
@@ -32,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('novel_chapters');
+        Schema::dropIfExists('translation_novel_chapters');
     }
 };

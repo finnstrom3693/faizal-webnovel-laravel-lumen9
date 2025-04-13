@@ -17,6 +17,18 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+// storage
+
+$router->get('storage/{filename}', function ($filename) {
+    $path = storage_path('app/public/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    return response()->file($path);
+});
+
 // Auth Admin Router
 $router->group(['prefix' => 'api/auth_admin'], function () use ($router) {
     $router->post('register', 'AuthAdminController@register');
@@ -26,17 +38,17 @@ $router->group(['prefix' => 'api/auth_admin'], function () use ($router) {
     $router->get('me', 'AuthAdminController@me');
 });
 
-$router->get('api/invite-codes', 'InviteCodesController@index');
-$router->post('api/invite-codes', 'InviteCodesController@store');
-$router->get('api/invite-codes/validate/{code}', 'InviteCodesController@validateCode');
-$router->post('api/invite-codes/use/{code}', 'InviteCodesController@useCode');
+// $router->get('api/invite-codes', 'InviteCodesController@index');
+// $router->post('api/invite-codes', 'InviteCodesController@store');
+// $router->get('api/invite-codes/validate/{code}', 'InviteCodesController@validateCode');
+// $router->post('api/invite-codes/use/{code}', 'InviteCodesController@useCode');
 
-// $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($router) {
-//     $router->get('invite-codes', 'InviteCodesController@index');
-//     $router->post('invite-codes', 'InviteCodesController@store');
-//     $router->get('invite-codes/validate/{code}', 'InviteCodesController@validateCode');
-//     $router->post('invite-codes/use/{code}', 'InviteCodesController@useCode');
-// });
+$router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($router) {
+    $router->get('invite-codes', 'InviteCodesController@index');
+    $router->post('invite-codes', 'InviteCodesController@store');
+    $router->get('invite-codes/validate/{code}', 'InviteCodesController@validateCode');
+    $router->post('invite-codes/use/{code}', 'InviteCodesController@useCode');
+});
 
 // Novel Routes
 $router->group(['prefix' => 'api/novel'], function () use ($router) {
@@ -51,15 +63,41 @@ $router->group(['prefix' => 'api/novel'], function () use ($router) {
     });
 
     // Nested Chapter Routes - FIXED
-    $router->group(['prefix' => '{novel_id}/chapter'], function () use ($router) {
+    $router->group(['prefix' => '{novelId}/chapter'], function () use ($router) {
         $router->get('/', 'NovelChapterController@index');
-        $router->get('{id}', 'NovelChapterController@show');
+        $router->get('{chapterId}', 'NovelChapterController@show');
 
         // Auth-protected Chapter routes
         $router->group(['middleware' => 'auth'], function () use ($router) {
             $router->post('/', 'NovelChapterController@store');
-            $router->put('{id}', 'NovelChapterController@update');
-            $router->delete('{id}', 'NovelChapterController@destroy');
+            $router->put('{chapterId}', 'NovelChapterController@update');
+            $router->delete('{chapterId}', 'NovelChapterController@destroy');
+        });
+    });
+});
+
+// Translation Novel Routes 
+$router->group(['prefix' => 'api/translation_novel'], function () use ($router) {
+    $router->get('/', 'TranslationNovelController@index');
+    $router->get('{id}', 'TranslationNovelController@show');
+
+    // Auth-protected Novel routes
+    $router->group(['middleware' => 'auth'], function () use ($router) {
+        $router->post('/', 'TranslationNovelController@store');
+        $router->put('{id}', 'TranslationNovelController@update');
+        $router->delete('{id}', 'TranslationNovelController@destroy');
+    });
+
+    // Nested Chapter Routes - FIXED
+    $router->group(['prefix' => '{novelId}/chapter'], function () use ($router) {
+        $router->get('/', 'TranslationNovelChapterController@index');
+        $router->get('{chapterId}', 'TranslationNovelChapterController@show');
+
+        // Auth-protected Chapter routes
+        $router->group(['middleware' => 'auth'], function () use ($router) {
+            $router->post('/', 'TranslationNovelChapterController@store');
+            $router->put('{chapterId}', 'TranslationNovelChapterController@update');
+            $router->delete('{chapterId}', 'TranslationNovelChapterController@destroy');
         });
     });
 });

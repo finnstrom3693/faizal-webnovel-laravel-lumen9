@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from '../Components/Navbar.jsx';
 import Sidebar from '../Components/Sidebar.jsx';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -6,61 +6,14 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 
-const EditChapterDashboard = () => {
+const CreateTranslationChapterDashboard = () => {
   const navigate = useNavigate();
-  const { novelId, chapterId } = useParams();
+  const { id } = useParams();
   const [chapterTitle, setChapterTitle] = useState('');
   const [chapterContent, setChapterContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchChapter = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('You must be logged in to edit a chapter');
-        navigate('/');
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/api/novel/${novelId}/chapter/${chapterId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            }
-          }
-        );
-
-        if (!response.data.success) {
-          throw new Error(response.data.message || 'Failed to load chapter');
-        }
-
-        setChapterTitle(response.data.data.title);
-        setChapterContent(response.data.data.content);
-      } catch (error) {
-        console.error('Error fetching chapter:', error);
-        let errorMessage = 'Failed to load chapter. Please try again.';
-        
-        if (error.response) {
-          if (error.response.status === 404) {
-            errorMessage = 'Chapter not found';
-          } else {
-            errorMessage = error.response.data?.message || errorMessage;
-          }
-        }
-        
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchChapter();
-  }, [novelId, chapterId, navigate]);
 
   const isQuillEmpty = (content) => {
     if (!content) return true;
@@ -73,7 +26,7 @@ const EditChapterDashboard = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('You must be logged in to edit a chapter');
+      setError('You must be logged in to create a chapter');
       navigate('/');
       return;
     }
@@ -89,12 +42,16 @@ const EditChapterDashboard = () => {
 
     try {
       const payload = {
+        novel_id: id,
         title: chapterTitle,
         content: chapterContent,
       };
 
-      const response = await axios.put(
-        `${process.env.REACT_APP_BASE_URL}/api/novel/${novelId}/chapter/${chapterId}`,
+      console.log("payload :",payload);
+
+      // Changed the endpoint to match typical REST conventions
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/translation_novel/${id}/chapter`,
         payload,
         {
           headers: {
@@ -104,26 +61,11 @@ const EditChapterDashboard = () => {
         }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to update chapter');
-      }
-
-      setSuccess('Chapter Updated Successfully!');
-      setTimeout(() => {
-        navigate(`/admin/novel/edit/${novelId}`);
-      }, 1500);
+      setSuccess('Chapter Created Successfully!');
+      navigate(`/admin/translation-novel/edit/${id}`);
     } catch (error) {
-      console.error('Error updating chapter:', error);
-      let errorMessage = 'Error updating chapter. Please try again.';
-      
-      if (error.response) {
-        if (error.response.status === 404) {
-          errorMessage = 'Chapter or novel not found';
-        } else {
-          errorMessage = error.response.data?.message || errorMessage;
-        }
-      }
-      
+      console.error('Error creating chapter:', error);
+      const errorMessage = error.response?.data?.message || 'Error creating chapter. Please try again.';
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -156,22 +98,6 @@ const EditChapterDashboard = () => {
     'image',
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen bg-gray-100">
-        <Sidebar />
-        <div className="flex-1 overflow-auto">
-          <Navbar activePage="novels" />
-          <main className="p-6">
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          </main>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
@@ -182,7 +108,7 @@ const EditChapterDashboard = () => {
         <main className="p-6 space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-semibold text-gray-800">
-              Edit Chapter
+              Create New Chapter
             </h1>
             <button
               onClick={handleGoBack}
@@ -241,10 +167,10 @@ const EditChapterDashboard = () => {
                 type="submit"
                 disabled={isSubmitting}
                 className={`inline-flex items-center px-6 py-3 text-white text-lg font-semibold rounded-md shadow-md transition duration-300 ease-in-out ${
-                  isSubmitting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+                  isSubmitting ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
-                {isSubmitting ? 'Updating...' : 'Update Chapter'}
+                {isSubmitting ? 'Saving...' : 'Save Chapter'}
               </button>
             </div>
           </form>
@@ -254,4 +180,4 @@ const EditChapterDashboard = () => {
   );
 };
 
-export default EditChapterDashboard;
+export default CreateTranslationChapterDashboard;

@@ -26,7 +26,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const CreateNovelDashboard = () => {
+const TranslationCreateNovelDashboard = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
@@ -65,7 +65,7 @@ const CreateNovelDashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/', { state: { message: 'Please login to create a novel' } });
+      navigate('/', { state: { message: 'Please login to create a translation novel' } });
     }
   }, [navigate]);
 
@@ -80,9 +80,7 @@ const CreateNovelDashboard = () => {
       errors.chapterContent = 'Chapter content is required';
     }
     setValidationErrors(errors);
-    const isValid = Object.keys(errors).length === 0;
-    console.log('Form validation result:', isValid ? 'Valid' : 'Invalid', errors);
-    return isValid;
+    return Object.keys(errors).length === 0;
   };
 
   const handleInputChange = (e) => {
@@ -153,14 +151,13 @@ const CreateNovelDashboard = () => {
       formDataToSend.append('genre', formData.genre);
       formDataToSend.append('synopsis', formData.synopsis);
       formDataToSend.append('status', formData.status);
-      // Explicit boolean conversion
       formDataToSend.append('featured', formData.featured ? 1 : 0);
       
       if (formData.cover) {
         formDataToSend.append('cover', formData.cover);
       }
 
-      const novelResponse = await api.post('/api/novel', formDataToSend, {
+      const novelResponse = await api.post('/api/translation_novel', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -168,13 +165,13 @@ const CreateNovelDashboard = () => {
 
       const novelId = novelResponse.data.data.id;
 
-      await api.post(`/api/novel/${novelId}/chapter`, {
+      await api.post(`/api/translation_novel/${novelId}/chapter`, {
         novel_id: novelId,
         title: formData.chapterName,
         content: formData.chapterContent
       });
 
-      setSuccess('Your novel and first chapter have been successfully created!');
+      setSuccess('Your translation novel and first chapter have been successfully created!');
 
       setFormData({
         title: '',
@@ -182,7 +179,7 @@ const CreateNovelDashboard = () => {
         genre: '',
         synopsis: '',
         status: 'draft',
-        featured: false,
+        featured: 0,
         chapterName: '',
         chapterContent: '',
         cover: null,
@@ -190,7 +187,7 @@ const CreateNovelDashboard = () => {
       setPreviewImage(null);
 
     } catch (err) {
-      console.error('Error creating novel:', err);
+      console.error('Error creating translation novel:', err);
       
       if (err.response?.status === 401) {
         navigate('/', { state: { message: 'Your session has expired. Please login again.' } });
@@ -205,7 +202,7 @@ const CreateNovelDashboard = () => {
           setError(err.response.data?.message || 'The server rejected your input.');
         }
       } else {
-        setError(err.response?.data?.message || 'Failed to create novel. Please try again.');
+        setError(err.response?.data?.message || 'Failed to create translation novel. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -216,11 +213,11 @@ const CreateNovelDashboard = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 overflow-auto">
-        <Navbar activePage="novels" />
+        <Navbar activePage="translations" />
         <main className="p-6 space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Novel</h1>
-            <p className="text-sm text-gray-500 mt-1">Fill in the details to start your new novel</p>
+            <h1 className="text-3xl font-bold text-gray-900">Create New Translation Novel</h1>
+            <p className="text-sm text-gray-500 mt-1">Fill in the details to start your new translation novel</p>
           </div>
 
           {error && (
@@ -327,7 +324,6 @@ const CreateNovelDashboard = () => {
                   </select>
                 </div>
 
-                {/* Featured Checkbox */}
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -481,4 +477,4 @@ const CreateNovelDashboard = () => {
   );
 };
 
-export default CreateNovelDashboard;
+export default TranslationCreateNovelDashboard;

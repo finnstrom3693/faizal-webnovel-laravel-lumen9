@@ -8,20 +8,25 @@ class CorsMiddleware
 {
     public function handle($request, Closure $next)
     {
-        // Handle preflight requests
-        if ($request->getMethod() === "OPTIONS") {
-            return response('', 200)
-                ->header('Access-Control-Allow-Origin', '*')
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        $origin = $request->header('Origin') ?? '*';
+
+        $headers = [
+            'Access-Control-Allow-Origin'      => $origin,
+            'Access-Control-Allow-Methods'     => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Allow-Credentials' => 'true',
+        ];
+
+        if ($request->getMethod() === 'OPTIONS') {
+            return response('', 200)->withHeaders($headers);
         }
 
         $response = $next($request);
 
-        // Set CORS headers
-        return $response
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        foreach ($headers as $key => $value) {
+            $response->header($key, $value);
+        }
+
+        return $response;
     }
 }

@@ -6,7 +6,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 
-const EditChapterDashboard = () => {
+const EditTranslationChapterDashboard = () => {
   const navigate = useNavigate();
   const { novelId, chapterId } = useParams();
   const [chapterTitle, setChapterTitle] = useState('');
@@ -27,7 +27,7 @@ const EditChapterDashboard = () => {
 
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/api/novel/${novelId}/chapter/${chapterId}`,
+          `${process.env.REACT_APP_BASE_URL}/api/translation_novel/${novelId}/chapter/${chapterId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -94,7 +94,7 @@ const EditChapterDashboard = () => {
       };
 
       const response = await axios.put(
-        `${process.env.REACT_APP_BASE_URL}/api/novel/${novelId}/chapter/${chapterId}`,
+        `${process.env.REACT_APP_BASE_URL}/api/translation_novel/${novelId}/chapter/${chapterId}`,
         payload,
         {
           headers: {
@@ -110,7 +110,7 @@ const EditChapterDashboard = () => {
 
       setSuccess('Chapter Updated Successfully!');
       setTimeout(() => {
-        navigate(`/admin/novel/edit/${novelId}`);
+        navigate(`/admin/translation-novel/edit/${novelId}`);
       }, 1500);
     } catch (error) {
       console.error('Error updating chapter:', error);
@@ -254,4 +254,4 @@ const EditChapterDashboard = () => {
   );
 };
 
-export default EditChapterDashboard;
+export default EditTranslationChapterDashboard;

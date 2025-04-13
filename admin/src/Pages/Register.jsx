@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const Register = () => {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [formData, setFormData] = React.useState({
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    inviteCode: ''
+    inviteCode: '',
+    role: 'admin'
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const baseUrl = process.env.REACT_APP_BASE_URL || '';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,10 +28,43 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle registration logic here
-    console.log('Registration submitted:', formData);
+    
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${baseUrl}/api/auth_admin/register`, {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.admin,
+        invite_code: formData.inviteCode
+      });
+
+      console.log('Registration successful:', response.data);
+
+      // Optionally auto-login after registration
+      const { access_token } = response.data.data;
+      localStorage.setItem('token', access_token);
+      
+      navigate('/admin');
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(
+        err.response?.data?.message || 
+        'Registration failed. Please check your information and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,6 +85,12 @@ const Register = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -63,6 +109,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="py-2 pl-10 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="John Doe"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -85,6 +132,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="py-2 pl-10 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="admin@example.com"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -107,12 +155,14 @@ const Register = () => {
                   onChange={handleChange}
                   className="py-2 pl-10 pr-10 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="••••••••"
+                  disabled={loading}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <button
                     type="button"
                     className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -144,12 +194,14 @@ const Register = () => {
                   onChange={handleChange}
                   className="py-2 pl-10 pr-10 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="••••••••"
+                  disabled={loading}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <button
                     type="button"
                     className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -175,6 +227,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="py-2 px-3 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Enter admin invite code"
+                  disabled={loading}
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
@@ -189,6 +242,7 @@ const Register = () => {
                 type="checkbox"
                 required
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                disabled={loading}
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
                 I agree to the <a href="#" className="text-indigo-600 hover:text-indigo-500">terms and conditions</a>
@@ -198,9 +252,20 @@ const Register = () => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                disabled={loading}
               >
-                Register Admin Account
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Registering...
+                  </>
+                ) : (
+                  'Register Admin Account'
+                )}
               </button>
             </div>
           </form>
@@ -219,13 +284,14 @@ const Register = () => {
 
             <div className="mt-6">
               <div className="flex justify-center text-sm">
-                <Link 
-                  to="/admin/login" 
+                <button
+                  onClick={() => navigate('/admin/login')}
                   className="flex items-center font-medium text-indigo-600 hover:text-indigo-500"
+                  disabled={loading}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Back to login
-                </Link>
+                </button>
               </div>
             </div>
           </div>

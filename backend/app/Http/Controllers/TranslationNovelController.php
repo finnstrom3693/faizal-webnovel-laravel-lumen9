@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Novel;
+use App\Models\TranslationNovel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 
-class NovelController extends Controller
+class TranslationNovelController extends Controller
 {
     // Get all novels
     public function index()
     {
-        $novels = Novel::all();
+        $novels = TranslationNovel::all();
         return response()->json([
             'success' => true,
             'data' => $novels,
@@ -51,7 +51,7 @@ class NovelController extends Controller
             $data['cover'] = $path;
         }
 
-        $novel = Novel::create($data);
+        $novel = TranslationNovel::create($data);
 
         return response()->json([
             'success' => true,
@@ -63,7 +63,7 @@ class NovelController extends Controller
     // Show a specific novel
     public function show($id)
     {
-        $novel = Novel::find($id);
+        $novel = TranslationNovel::find($id);
 
         if (!$novel) {
             return response()->json([
@@ -81,7 +81,7 @@ class NovelController extends Controller
     // Update a novel
     public function update(Request $request, $id)
     {
-        $novel = Novel::find($id);
+        $novel = TranslationNovel::find($id);
 
         if (!$novel) {
             return response()->json([
@@ -149,7 +149,7 @@ class NovelController extends Controller
     // Delete a novel
     public function destroy($id)
     {
-        $novel = Novel::find($id);
+        $novel = TranslationNovel::find($id);
 
         if (!$novel) {
             return response()->json([

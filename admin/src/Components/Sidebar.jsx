@@ -1,8 +1,8 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
     BookOpen, BarChart2, User, Users, FileText, Settings,
-    LogOut
+    LogOut, Languages, UserPlus
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -10,9 +10,53 @@ class Sidebar extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            activePage: 'admin'
+            activePage: 'admin',
+            adminName: 'Admin',
+            adminEmail: 'admin@example.com',
+            loading: true,
+            error: null
         };
     }
+
+    componentDidMount() {
+        this.fetchAdminProfile();
+    }
+
+    fetchAdminProfile = async () => {
+        try {
+            const baseUrl = process.env.REACT_APP_BASE_URL;
+            const token = localStorage.getItem('token');
+            
+            const response = await axios.get(
+                `${baseUrl}/api/auth_admin/me`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json"
+                    },
+                    withCredentials: true
+                }
+            );
+            
+            // Fixed: Check for response.data existence and directly access properties
+            if (response.data) {
+                const { name, email } = response.data.data;
+                this.setState({
+                    adminName: name || 'Admin',
+                    adminEmail: email || 'admin@example.com',
+                    loading: false
+                });
+            } else {
+                throw new Error("Invalid response format");
+            }
+        } catch (error) {
+            console.error("Failed to fetch admin profile:", error);
+            this.setState({ 
+                error: "Failed to load admin profile",
+                loading: false 
+            });
+        }
+    };
 
     setActivePage = (pageId) => {
         this.setState({ activePage: pageId });
@@ -21,10 +65,10 @@ class Sidebar extends React.Component {
     handleLogout = async () => {
         try {
             const baseUrl = process.env.REACT_APP_BASE_URL;
-            const token = localStorage.getItem('token'); // or sessionStorage.getItem()
-    
+            const token = localStorage.getItem('token');
+
             await axios.post(
-                `${baseUrl}/api/logout`,
+                `${baseUrl}/api/auth_admin/logout`,
                 {},
                 {
                     headers: {
@@ -34,28 +78,26 @@ class Sidebar extends React.Component {
                     withCredentials: true
                 }
             );
-    
-            // Now that logout succeeded, clear storage
+
             localStorage.clear();
-    
-            // Redirect to login
             window.location.href = "/";
         } catch (error) {
             console.error("Logout failed:", error);
             alert("Logout failed. Please try again.");
         }
     };
-    
 
     render() {
-        const { activePage } = this.state;
+        const { activePage, adminName, adminEmail, loading, error } = this.state;
 
         const navItems = [
             { name: 'Dashboard', icon: <BarChart2 />, id: '' },
             { name: 'Novels', icon: <BookOpen />, id: 'novel' },
+            { name: 'Translation Novels', icon: <Languages />, id: 'translation-novel' },
             { name: 'Authors', icon: <User />, id: 'author' },
             { name: 'Users', icon: <Users />, id: 'user' },
             { name: 'Comments', icon: <FileText />, id: 'comment' },
+            { name: 'Invite Admin', icon: <UserPlus />, id: 'invites-code' },
             { name: 'Settings', icon: <Settings />, id: 'setting' }
         ];
 
@@ -86,11 +128,21 @@ class Sidebar extends React.Component {
                 <div className="absolute bottom-0 w-full p-4 border-t border-indigo-700">
                     <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                            A
+                            {!loading && adminName ? adminName.charAt(0).toUpperCase() : 'A'}
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium">Admin</p>
-                            <p className="text-xs text-indigo-300">admin@faizal.com</p>
+                            {error ? (
+                                <p className="text-xs text-red-300">{error}</p>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-medium">
+                                        {loading ? 'Loading...' : adminName}
+                                    </p>
+                                    <p className="text-xs text-indigo-300">
+                                        {loading ? 'loading...' : adminEmail}
+                                    </p>
+                                </>
+                            )}
                         </div>
                         <LogOut
                             className="ml-auto h-4 w-4 text-indigo-300 hover:text-white cursor-pointer"

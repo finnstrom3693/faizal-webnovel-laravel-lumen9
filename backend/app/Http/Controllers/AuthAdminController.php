@@ -106,22 +106,45 @@ class AuthAdminController extends Controller
 
     public function me()
     {
-        $user = $this->guard()->user();
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => $user,            ]
-        ]);
+        try {
+            $user = $this->guard()->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $user // Simplified response structure
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch user data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function logout()
     {
-        $this->guard()->logout();
-        return response()->json([
-            'success' => true,
-            'message' => 'Successfully logged out'
-        ]);
+        try {
+            auth()->invalidate(true); // <-- this is crucial
+            return response()->json([
+                'success' => true,
+                'message' => 'Successfully logged out'
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to logout, please try again.'
+            ], 500);
+        }
     }
+
 
     public function refresh()
     {

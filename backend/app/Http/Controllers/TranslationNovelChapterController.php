@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\NovelChapter;
-use App\Models\Novel;
+use App\Models\TranslationNovelChapter;
+use App\Models\TranslationNovel; // Changed from Novel to TranslationNovel
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
-class NovelChapterController extends Controller
+class TranslationNovelChapterController extends Controller
 {
     /**
      * Display a listing of chapters for a specific novel.
@@ -16,7 +16,7 @@ class NovelChapterController extends Controller
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'novel_id' => 'required|integer|exists:novels,id' // Changed from novels to translation_novels
+            'novel_id' => 'required|integer|exists:translation_novels,id' // Changed from novels to translation_novels
         ]);
 
         if ($validator->fails()) {
@@ -28,7 +28,7 @@ class NovelChapterController extends Controller
         }
 
         try {
-            $chapters = NovelChapter::where('novel_id', $request->novel_id)
+            $chapters = TranslationNovelChapter::where('novel_id', $request->novel_id)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -52,6 +52,7 @@ class NovelChapterController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'novel_id' => 'required|integer|exists:translation_novels,id', // Added novel_id validation
             'title' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
@@ -76,7 +77,7 @@ class NovelChapterController extends Controller
                 $chapterData['chapter_number'] = $request->chapter_number;
             }
 
-            $chapter = NovelChapter::create($chapterData);
+            $chapter = TranslationNovelChapter::create($chapterData);
 
             return response()->json([
                 'success' => true,
@@ -105,10 +106,9 @@ class NovelChapterController extends Controller
     public function show($novelId, $chapterId)
     {
         try {
-            $chapter = NovelChapter::where('id', $chapterId)
+            $chapter = TranslationNovelChapter::where('id', $chapterId)
                 ->where('novel_id', $novelId)
                 ->first();
-
 
             if (!$chapter) {
                 return response()->json([
@@ -150,11 +150,11 @@ class NovelChapterController extends Controller
         }
 
         try {
-            $chapter = NovelChapter::where('id', $chapterId)
+            $chapter = TranslationNovelChapter::where('id', $chapterId)
                 ->where('novel_id', $novelId)
                 ->first();
 
-            if (!Novel::where('id', $novelId)->exists()) {
+            if (!TranslationNovel::where('id', $novelId)->exists()) { // Changed from Novel to TranslationNovel
                 return response()->json([
                     'success' => false,
                     'message' => 'Novel not found'
@@ -191,7 +191,7 @@ class NovelChapterController extends Controller
     public function destroy($novelId, $chapterId)
     {
         try {
-            $chapter = NovelChapter::where('id', $chapterId)
+            $chapter = TranslationNovelChapter::where('id', $chapterId)
                 ->where('novel_id', $novelId)
                 ->first();
 

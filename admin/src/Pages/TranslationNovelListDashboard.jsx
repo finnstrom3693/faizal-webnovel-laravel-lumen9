@@ -4,9 +4,9 @@ import Navbar from '../Components/Navbar.jsx';
 import Sidebar from '../Components/Sidebar.jsx';
 import { useNavigate } from 'react-router-dom';
 
-const NovelListDashboard = () => {
+const TranslationNovelListDashboard = () => {
   const navigate = useNavigate();
-  const [novels, setNovels] = useState([]);
+  const [translation_novels, setTranslationNovels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'ascending' });
@@ -14,7 +14,7 @@ const NovelListDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [featuredFilter, setFeaturedFilter] = useState('all');
 
-  // Fetch novels from API
+  // Fetch translation novels from API
   useEffect(() => {
     const fetchNovels = async () => {
       try {
@@ -27,14 +27,14 @@ const NovelListDashboard = () => {
 
         // Use a fallback URL if the environment variable isn't available
         const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
-        console.log(`Fetching novels from: ${baseUrl}/api/novel/`);
+        console.log(`Fetching novels from: ${baseUrl}/api/translation_novel/`);
 
         const headers = {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         };
 
-        const response = await fetch(`${baseUrl}/api/novel/`, {
+        const response = await fetch(`${baseUrl}/api/translation_novel/`, {
           headers,
           method: 'GET',
         });
@@ -55,19 +55,19 @@ const NovelListDashboard = () => {
         // Handle Lumen's specific response format: { success: true, data: [...] }
         if (jsonResponse.success && Array.isArray(jsonResponse.data)) {
           console.log(`Setting novels from jsonResponse.data with ${jsonResponse.data.length} items`);
-          setNovels(jsonResponse.data);
+          setTranslationNovels(jsonResponse.data);
         } else if (jsonResponse.success && typeof jsonResponse.data === 'object') {
           console.log('Data is an object, converting to array');
-          setNovels([jsonResponse.data]);
+          setTranslationNovels([jsonResponse.data]);
         } else {
           console.error('Unexpected API response format:', jsonResponse);
-          setNovels([]);
+          setTranslationNovels([]);
           setError('Received unexpected data format from server');
         }
       } catch (err) {
         console.error('Error fetching novels:', err);
         setError(err.message || 'An error occurred while fetching novels');
-        setNovels([]); // Ensure novels is set to something even on error
+        setTranslationNovels([]); // Ensure novels is set to something even on error
       } finally {
         setIsLoading(false);
       }
@@ -88,13 +88,13 @@ const NovelListDashboard = () => {
   // Filter and sort the data
   const filteredAndSortedNovels = useMemo(() => {
     // Ensure novels is an array before processing
-    if (!Array.isArray(novels)) {
-      console.error('novels is not an array:', novels);
+    if (!Array.isArray(translation_novels)) {
+      console.error('translation_novels is not an array:', translation_novels);
       return [];
     }
 
     // First filter by search term
-    let filtered = novels.filter(novel =>
+    let filtered = translation_novels.filter(novel =>
       (novel.title && novel.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (novel.author && novel.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (novel.genre && novel.genre.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -129,7 +129,7 @@ const NovelListDashboard = () => {
     }
 
     return filtered;
-  }, [novels, sortConfig, searchTerm, statusFilter, featuredFilter]);
+  }, [translation_novels, sortConfig, searchTerm, statusFilter, featuredFilter]);
 
   // Delete novel handler
   const handleDelete = async (id) => {
@@ -143,7 +143,7 @@ const NovelListDashboard = () => {
 
         const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
 
-        const response = await fetch(`${baseUrl}/api/novel/${id}`, {
+        const response = await fetch(`${baseUrl}/api/translation_novel/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -164,7 +164,7 @@ const NovelListDashboard = () => {
 
         if (jsonResponse.success) {
           // Remove the novel from local state if API call succeeds
-          setNovels(novels.filter(novel => novel.id !== id));
+          setTranslationNovels(translation_novels.filter(novel => novel.id !== id));
           // Optionally display a success message
           console.log('Delete successful:', jsonResponse.message);
         } else {
@@ -241,9 +241,9 @@ const NovelListDashboard = () => {
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-gray-800">All Novels</h1>
+                <h1 className="text-2xl font-semibold text-gray-800">All Translation Novels</h1>
                 <button
-                  onClick={() => navigate('/admin/novel/create')}
+                  onClick={() => navigate('/admin/translation-novel/create')}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -379,14 +379,14 @@ const NovelListDashboard = () => {
                                 <button
                                   className="text-indigo-600 hover:text-indigo-900"
                                   title="View Novel"
-                                  onClick={() => navigate(`/admin/novel/view/${novel.id}`)}
+                                  onClick={() => navigate(`/admin/translation-novel/view/${novel.id}`)}
                                 >
                                   <Eye className="h-5 w-5" />
                                 </button>
                                 <button
                                   className="text-green-600 hover:text-green-900"
                                   title="Edit Novel"
-                                  onClick={() => navigate(`/admin/novel/edit/${novel.id}`)}
+                                  onClick={() => navigate(`/admin/translation-novel/edit/${novel.id}`)}
                                 >
                                   <Edit className="h-5 w-5" />
                                 </button>
@@ -415,7 +415,7 @@ const NovelListDashboard = () => {
                 {/* Pagination */}
                 <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                   <div className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{filteredAndSortedNovels.length}</span> of <span className="font-medium">{novels.length}</span> novels
+                    Showing <span className="font-medium">{filteredAndSortedNovels.length}</span> of <span className="font-medium">{translation_novels.length}</span> novels
                   </div>
 
                   {/* Basic pagination - implement actual pagination logic as needed */}
@@ -445,4 +445,4 @@ const NovelListDashboard = () => {
   );
 };
 
-export default NovelListDashboard;
+export default TranslationNovelListDashboard;

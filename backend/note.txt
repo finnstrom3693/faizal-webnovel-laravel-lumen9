@@ -10,3 +10,8 @@ php artisan make:controller NovelController
 migration
 php artisan migrate
 php artisan migrate:fresh
+
+create storage symbolic link
+mkdir -p storage/app/public/covers
+chmod -R 775 storage
+ln -s /home/izaus/IzausLab-Linux-DEB-New/WebDev/flask-faizal-tl-blog-dev/mariadb/faizal-webnovel-laravel-lumen9/faizal-webnovel-laravel-lumen9/storage/app/public/ /home/izaus/IzausLab-Linux-DEB-New/WebDev/flask-faizal-tl-blog-dev/mariadb/faizal-webnovel-laravel-lumen9/faizal-webnovel-laravel-lumen9/public/

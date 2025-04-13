@@ -26,7 +26,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const EditNovelDashboard = () => {
+const EditTranslationNovelDashboard = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -70,7 +70,7 @@ const EditNovelDashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/', { state: { from: `/admin/novel/edit/${id}` } });
+      navigate('/', { state: { from: `/admin/translation-novel/edit/${id}` } });
     }
   }, [id, navigate]);
 
@@ -81,7 +81,7 @@ const EditNovelDashboard = () => {
         setLoading(true);
 
         // Get novel details
-        const novelResponse = await api.get(`/api/novel/${id}`);
+        const novelResponse = await api.get(`/api/translation_novel/${id}`);
         const novelData = novelResponse.data.data;
         console.log("novel data :", novelData);
         setNovel(novelData);
@@ -104,7 +104,7 @@ const EditNovelDashboard = () => {
         }
 
         // Fetch chapters
-        const chaptersResponse = await api.get(`/api/novel/${id}/chapter`, {
+        const chaptersResponse = await api.get(`/api/translation_novel/${id}/chapter`, {
           params: { novel_id: id }
         });
 
@@ -220,7 +220,7 @@ const EditNovelDashboard = () => {
   
       formDataToSend.append('_method', 'PUT'); // Tell Lumen it's a PUT request
 
-      const response = await api.post(`/api/novel/${id}`, formDataToSend, {
+      const response = await api.post(`/api/translation_novel/${id}`, formDataToSend, {
         headers: {
                 'Content-Type': 'multipart/form-data'
         }
@@ -273,7 +273,7 @@ const EditNovelDashboard = () => {
         return;
       }
 
-      await api.delete(`/api/novel/${id}/chapter/${chapterId}`);
+      await api.delete(`/api/translation_novel/${id}/chapter/${chapterId}`);
 
       setChapters(chapters.filter(chapter => chapter.id !== chapterId));
       setSuccess(`Chapter "${chapterTitle}" deleted successfully!`);
@@ -334,7 +334,7 @@ const EditNovelDashboard = () => {
         <div className="p-6">
           <div className="text-lg">Novel not found</div>
           <Link
-            to="/admin/novel"
+            to="/admin/translation-novel"
             className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Back to Novels
@@ -582,7 +582,7 @@ const EditNovelDashboard = () => {
 
             <div className="flex justify-end space-x-4">
               <Link
-                to={`/admin/novel/${id}/chapter/create`}
+                to={`/admin/translation-novel/${id}/chapter/create`}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-sm hover:bg-blue-700 transition-colors duration-150"
               >
                 Add Chapter
@@ -606,7 +606,7 @@ const EditNovelDashboard = () => {
                     <span className="font-medium">{chapter.title}</span>
                     <div className="flex space-x-4">
                       <a
-                        href={`${window.location.origin}/novel/${novel.id}/chapter/${chapter.id}`}
+                        href={`${window.location.origin}/translation-novel/${novel.id}/chapter/${chapter.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -614,7 +614,7 @@ const EditNovelDashboard = () => {
                         View
                       </a>
                       <Link
-                        to={`/admin/novel/edit/${novel.id}/edit-chapter/${chapter.id}`}
+                        to={`/admin/translation-novel/edit/${novel.id}/edit-chapter/${chapter.id}`}
                         className="text-sm text-green-600 hover:text-green-800 hover:underline"
                       >
                         Edit
@@ -639,4 +639,4 @@ const EditNovelDashboard = () => {
   );
 };
 
-export default EditNovelDashboard;
+export default EditTranslationNovelDashboard;
