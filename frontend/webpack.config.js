@@ -1,15 +1,18 @@
-import { dirname } from 'path';
+// webpack.config.js
+import path from 'path';
 import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import Dotenv from 'dotenv-webpack';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default {
   entry: './src/index.js',
   output: {
-    path: __dirname + '/dist',
+    path: path.resolve(__dirname, 'dist'),
     filename: 'main.js',
-    publicPath: '/', // 👈 Add this to ensure correct asset loading
+    publicPath: process.env.REACT_APP_BASE_URL || '/',
   },
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
@@ -26,30 +29,29 @@ export default {
       },
       {
         test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader',
-        ],
+        use: ['style-loader', 'css-loader', 'postcss-loader'], // Corrected 'postcss-loader' to 'postcss-loader'
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html',
+      template: path.resolve(__dirname, 'public/index.html'), // Ensure path is resolved
+    }),
+    new Dotenv({
+      path: path.resolve(__dirname, '.env'), // Specify the path to your .env file
     }),
   ],
   devServer: {
     historyApiFallback: {
-      index: '/', // 👈 Explicit fallback to index.html
-      disableDotRule: true, // 👈 Allows routes with dots (e.g., /novel/1.2)
+      index: '/',
+      disableDotRule: true,
     },
     static: {
-      directory: __dirname + '/public', // 👈 Full path recommended
+      directory: path.resolve(__dirname, 'public'),
     },
     hot: true,
     open: false,
     port: 5173,
-    compress: true, // 👈 Enable gzip compression
+    compress: true,
   },
 };

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import Navbar from '../Components/Navbar.jsx';
 import Sidebar from '../Components/Sidebar.jsx';
 
@@ -357,7 +355,7 @@ const EditTranslationNovelDashboard = () => {
               <p className="text-sm text-gray-500 mt-1">Update the details of your novel</p>
             </div>
             <Link
-              to="/admin/novel"
+              to="/admin/translation-novel"
               className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
             >
               Back to Novels

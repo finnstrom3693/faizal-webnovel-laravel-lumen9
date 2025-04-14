@@ -109,27 +109,44 @@ class NovelChapterController extends Controller
                 ->where('novel_id', $novelId)
                 ->first();
 
-
             if (!$chapter) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Chapter not found for this novel'
-                ], Response::HTTP_NOT_FOUND);
+                ], 404);
             }
+
+            // You could use chapter_number instead of id if available
+            $previousChapter = NovelChapter::where('novel_id', $novelId)
+                ->where('id', '<', $chapter->id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $nextChapter = NovelChapter::where('novel_id', $novelId)
+                ->where('id', '>', $chapter->id)
+                ->orderBy('id', 'asc')
+                ->first();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Chapter retrieved successfully',
-                'data' => $chapter
-            ], Response::HTTP_OK);
+                'data' => [
+                    'chapter' => $chapter,
+                    'previousChapter' => $previousChapter ?? null,
+                    'nextChapter' => $nextChapter ?? null
+                ]
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve chapter',
+                'message' => 'Failed to retrieve chapter: ' . $e->getMessage(),
                 'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], 500);
         }
     }
+
+
 
     /**
      * Update the specified chapter.

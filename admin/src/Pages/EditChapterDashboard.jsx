@@ -39,8 +39,14 @@ const EditChapterDashboard = () => {
           throw new Error(response.data.message || 'Failed to load chapter');
         }
 
-        setChapterTitle(response.data.data.title);
-        setChapterContent(response.data.data.content);
+        // Make sure we're accessing the correct nested data structure
+        const chapterData = response.data.data.chapter;
+        if (!chapterData) {
+          throw new Error('Chapter data not found in response');
+        }
+
+        setChapterTitle(chapterData.title);
+        setChapterContent(chapterData.content || '');
       } catch (error) {
         console.error('Error fetching chapter:', error);
         let errorMessage = 'Failed to load chapter. Please try again.';

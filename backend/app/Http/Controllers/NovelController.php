@@ -46,8 +46,8 @@ class NovelController extends Controller
 
         if ($request->hasFile('cover')) {
             $file = $request->file('cover');
-            $path = 'covers/' . time() . '_' . $file->getClientOriginalName();
-            $file->move(storage_path('app/public/covers'), $file->getClientOriginalName());
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('covers', $filename, 'public');
             $data['cover'] = $path;
         }
 

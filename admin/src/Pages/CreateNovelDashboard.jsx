@@ -89,7 +89,8 @@ const CreateNovelDashboard = () => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked :
+        name === 'synopsis' ? value.replace(/\n/g, '\n') : value
     }));
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: undefined }));
@@ -103,7 +104,7 @@ const CreateNovelDashboard = () => {
         setError('File size must be less than 2MB');
         return;
       }
-      
+
       const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
       if (!validTypes.includes(file.type)) {
         setError('Only JPG, PNG or GIF images are allowed');
@@ -155,7 +156,7 @@ const CreateNovelDashboard = () => {
       formDataToSend.append('status', formData.status);
       // Explicit boolean conversion
       formDataToSend.append('featured', formData.featured ? 1 : 0);
-      
+
       if (formData.cover) {
         formDataToSend.append('cover', formData.cover);
       }
@@ -191,7 +192,7 @@ const CreateNovelDashboard = () => {
 
     } catch (err) {
       console.error('Error creating novel:', err);
-      
+
       if (err.response?.status === 401) {
         navigate('/', { state: { message: 'Your session has expired. Please login again.' } });
       } else if (err.response?.status === 422) {
@@ -348,9 +349,9 @@ const CreateNovelDashboard = () => {
                     <div className="relative group">
                       <div className={`h-48 w-36 rounded-lg border-2 ${previewImage ? 'border-transparent' : 'border-dashed border-gray-300'} overflow-hidden bg-gray-100 flex items-center justify-center`}>
                         {previewImage ? (
-                          <img 
-                            src={previewImage} 
-                            alt="Cover preview" 
+                          <img
+                            src={previewImage}
+                            alt="Cover preview"
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -361,7 +362,7 @@ const CreateNovelDashboard = () => {
                             <span className="mt-2 block text-sm text-gray-500">Portrait cover</span>
                           </div>
                         )}
-                        <label 
+                        <label
                           htmlFor="cover-upload"
                           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 cursor-pointer"
                         >
@@ -405,8 +406,9 @@ const CreateNovelDashboard = () => {
                   onChange={handleInputChange}
                   placeholder="Brief description of your novel"
                   rows="4"
-                  className={`mt-1 block w-full px-4 py-2.5 rounded-lg border ${validationErrors.synopsis ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition-colors duration-150`}
+                  className={`mt-1 block w-full px-4 py-2.5 rounded-lg border ${validationErrors.synopsis ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition-colors duration-150 whitespace-pre-wrap`}
                   required
+                  style={{ whiteSpace: 'pre-wrap' }}
                 />
                 {validationErrors.synopsis && (
                   <p className="mt-1 text-sm text-red-600">{validationErrors.synopsis}</p>

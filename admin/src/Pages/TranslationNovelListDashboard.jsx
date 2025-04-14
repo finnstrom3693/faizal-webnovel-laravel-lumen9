@@ -26,7 +26,7 @@ const TranslationNovelListDashboard = () => {
         }
 
         // Use a fallback URL if the environment variable isn't available
-        const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+        const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:8000';
         console.log(`Fetching novels from: ${baseUrl}/api/translation_novel/`);
 
         const headers = {
