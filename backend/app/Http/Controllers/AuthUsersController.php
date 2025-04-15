@@ -6,31 +6,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Models\UserAdmin;
-use App\Models\InviteCodes;
+use App\Models\Users;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Carbon; 
+use Illuminate\Support\Carbon;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
-class AuthAdminController extends Controller
+class AuthUsersController extends Controller
 {
     /**
-     * Get the admin guard to be used during authentication.
+     * Get the user guard to be used during authentication.
      *
      * @return \Illuminate\Contracts\Auth\Guard
      */
     protected function guard()
     {
-        return Auth::guard('admin'); // Changed to 'admin' guard
+        return Auth::guard('api'); // Using default 'api' guard for users
     }
 
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users_admin,email',
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
-            'invite_code' => 'required|string|exists:invite_codes,code'
+            'display_name' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -41,32 +40,28 @@ class AuthAdminController extends Controller
         }
 
         try {
-            $inviteCode = InviteCodes::where('code', $request->invite_code)
-                ->where('is_used', false)
-                ->first();
-
-            if (!$inviteCode) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid or already used invite code'
-                ], 422);
-            }
-
-            $admin = UserAdmin::create([
-                'name' => $request->name,
+            $user = Users::create([
+                'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'display_name' => $request->display_name ?? $request->username,
+                'join_date' => Carbon::now(),
+                'last_login' => Carbon::now(),
+                'account_status' => 'active',
             ]);
 
-            $inviteCode->update([
-                'is_used' => true,
-                'used_by' => $admin->id,
-                'used_at' => Carbon::now(),
-            ]);
+            $token = $this->guard()->login($user);
 
-            $token = $this->guard()->login($admin);
-
-            return $this->respondWithToken($token, 'Admin registered successfully', 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'User registered successfully',
+                'data' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => $this->guard()->factory()->getTTL() * 60,
+                    'user' => $user
+                ]
+            ], 201);
         } catch (QueryException $e) {
             return response()->json([
                 'success' => false,
@@ -96,13 +91,13 @@ class AuthAdminController extends Controller
             if (!$token = $this->guard()->attempt($credentials)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid admin credentials'
+                    'message' => 'Invalid user credentials'
                 ], 401);
             }
 
-            $admin = $this->guard()->user();
-            $admin->last_login = Carbon::now();
-            $admin->save();
+            $user = $this->guard()->user();
+            $user->last_login = Carbon::now();
+            $user->save();
 
             return $this->respondWithToken($token);
         } catch (JWTException $e) {
@@ -116,23 +111,23 @@ class AuthAdminController extends Controller
     public function me()
     {
         try {
-            $admin = $this->guard()->user();
+            $user = $this->guard()->user();
             
-            if (!$admin) {
+            if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Admin not authenticated'
+                    'message' => 'User not authenticated'
                 ], 401);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $admin
+                'data' => $user
             ]);
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to authenticate admin'
+                'message' => 'Failed to authenticate user'
             ], 401);
         }
     }
@@ -141,7 +136,6 @@ class AuthAdminController extends Controller
     {
         try {
             $this->guard()->logout();
-            
             return response()->json([
                 'success' => true,
                 'message' => 'Successfully logged out'
@@ -158,7 +152,7 @@ class AuthAdminController extends Controller
     {
         try {
             $token = $this->guard()->refresh();
-            return $this->respondWithToken($token, 'Admin token refreshed successfully');
+            return $this->respondWithToken($token, 'User token refreshed successfully');
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
@@ -168,7 +162,7 @@ class AuthAdminController extends Controller
         }
     }
 
-    protected function respondWithToken($token, $message = 'Admin authentication successful', $statusCode = 200)
+    protected function respondWithToken($token, $message = 'User authentication successful', $statusCode = 200)
     {
         return response()->json([
             'success' => true,

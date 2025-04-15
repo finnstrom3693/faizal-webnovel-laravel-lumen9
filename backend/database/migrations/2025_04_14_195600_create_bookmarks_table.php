@@ -21,7 +21,7 @@ class CreateBookmarksTable extends Migration
             $table->text('notes')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('novel_id')->references('id')->on('webnovels')->onDelete('cascade');
+            $table->foreign('novel_id')->references('id')->on('novels')->onDelete('cascade');
 
             $table->unique(['user_id', 'novel_id']);
         });

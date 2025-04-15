@@ -28,6 +28,6 @@ class UserAdmin extends Model implements AuthenticatableContract, JWTSubject
 
     public function getJWTCustomClaims()
     {
-        return [];
+        return ['role' => 'users_admin'];
     }
 }

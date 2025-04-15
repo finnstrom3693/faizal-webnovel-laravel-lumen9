@@ -33,9 +33,24 @@ $router->get('storage/{filename}', function ($filename) {
 $router->group(['prefix' => 'api/auth_admin'], function () use ($router) {
     $router->post('register', 'AuthAdminController@register');
     $router->post('login', 'AuthAdminController@login');
-    $router->post('logout', 'AuthAdminController@logout');
-    $router->post('refresh', 'AuthAdminController@refresh');
-    $router->get('me', 'AuthAdminController@me');
+    
+    $router->group(['middleware' => 'auth:api'], function() use ($router) {
+        $router->post('logout', 'AuthAdminController@logout');
+        $router->post('refresh', 'AuthAdminController@refresh');
+        $router->get('me', 'AuthAdminController@me');
+    });
+});
+
+// Auth User
+$router->group(['prefix' => 'api/auth'], function () use ($router) {
+    $router->post('register', 'AuthUsersController@register');
+    $router->post('login', 'AuthUsersController@login');
+    
+    $router->group(['middleware' => 'auth:api'], function () use ($router) {
+        $router->get('me', 'AuthUsersController@me');
+        $router->post('logout', 'AuthUsersController@logout');
+        $router->post('refresh', 'AuthUsersController@refresh');
+    });
 });
 
 // $router->get('api/invite-codes', 'InviteCodesController@index');
