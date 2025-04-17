@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import React from "react";
+import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   BookOpen, 
@@ -17,15 +17,12 @@ import {
   toggleMobileMenu,
   toggleDropdown,
   loginUser,
-  logoutUser,
-  setSearchQuery
+  logoutUser
 } from '../redux/actions/navbarActions';
 
 const Navbar = ({ currentPage }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { mobileMenuOpen, isDropdownOpen, isLoggedIn, user } = useSelector(state => state.navbar);
-  const [searchInput, setSearchInput] = useState('');
 
   const handleToggleMobileMenu = () => {
     dispatch(toggleMobileMenu());
@@ -38,24 +35,6 @@ const Navbar = ({ currentPage }) => {
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       dispatch(logoutUser());
-    }
-  };
-
-  const handleSearchInputChange = (e) => {
-    setSearchInput(e.target.value);
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchInput.trim()) {
-      dispatch(setSearchQuery(searchInput));
-      navigate(`/search?query=${encodeURIComponent(searchInput)}`);
-      setSearchInput('');
-      
-      // Close mobile menu if open
-      if (mobileMenuOpen) {
-        dispatch(toggleMobileMenu());
-      }
     }
   };
 
@@ -100,17 +79,14 @@ const Navbar = ({ currentPage }) => {
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            <form onSubmit={handleSearch} className="relative">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search novels..."
                 className="bg-indigo-700 rounded-md pl-8 pr-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 text-white placeholder-indigo-200"
-                value={searchInput}
-                onChange={handleSearchInputChange}
               />
               <Search className="absolute left-2 top-1.5 h-4 w-4 text-indigo-200" />
-              <button type="submit" className="sr-only">Search</button>
-            </form>
+            </div>
             
             {isLoggedIn ? (
               <div className="relative">
@@ -298,22 +274,14 @@ const Navbar = ({ currentPage }) => {
             )}
           </div>
           <div className="px-3 py-3 border-t border-indigo-700">
-            <form onSubmit={handleSearch} className="relative">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search novels..."
                 className="w-full bg-indigo-700 rounded-md pl-8 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 text-white placeholder-indigo-200"
-                value={searchInput}
-                onChange={handleSearchInputChange}
               />
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-indigo-200" />
-              <button 
-                type="submit" 
-                className="absolute right-2 top-2 text-indigo-300 hover:text-white"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

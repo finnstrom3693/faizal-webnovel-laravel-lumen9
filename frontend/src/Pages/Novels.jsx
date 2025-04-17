@@ -19,17 +19,30 @@ const Novels = () => {
   // Get base URL from environment variables
   const baseUrl = process.env.REACT_APP_BASE_URL || '';
 
-  const genres = ['All', 'Fantasy', 'Sci-Fi', 'Action', 'Romance', 'Urban Fantasy', 'Wuxia', 'Mystery', 'Horror'];
+  const genres = ['All', 'Fantasy', 'Sci-Fi', 'Action', 'Romance', 'Adventure', 'History', 'Mystery', 'Thriller'];
   const sortOptions = ['Latest', 'Popular', 'Rating', 'Most Chapters', 'Recently Updated'];
 
   useEffect(() => {
     const fetchNovels = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/api/novel`);
-        // Filter to only include published novels
-        const publishedNovels = response.data.data.filter(novel => novel.status === 'published');
-        setNovels(publishedNovels);
-        setFilteredNovels(publishedNovels);
+        const novelResponse = await axios.get(`${baseUrl}/api/novel`);
+        const publishedNovels = novelResponse.data.data.filter(novel => novel.status === 'published');
+
+        // For each novel, fetch its chapters and count them
+        const novelsWithChapters = await Promise.all(publishedNovels.map(async (novel) => {
+          try {
+            const chapterRes = await axios.get(`${baseUrl}/api/novel/${novel.id}/chapter?novel_id=${novel.id}`);
+            const chapterCount = chapterRes.data.data.length;
+            console.log(`novel id (${novel.id}) :`,chapterCount)
+            return { ...novel, chapters_count: chapterCount };
+          } catch (err) {
+            console.error(`Failed to fetch chapters for novel ID ${novel.id}`, err);
+            return { ...novel, chapters_count: 0 }; // fallback to 0 if failed
+          }
+        }));
+
+        setNovels(novelsWithChapters);
+        setFilteredNovels(novelsWithChapters);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -39,6 +52,7 @@ const Novels = () => {
 
     fetchNovels();
   }, [baseUrl]);
+
 
   // Filter novels by genre
   useEffect(() => {
@@ -54,19 +68,19 @@ const Novels = () => {
     // Apply sorting
     switch (selectedSort) {
       case 'Latest':
-        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Newest first
         break;
       case 'Popular':
-        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0)); // Most views first
         break;
       case 'Rating':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0)); // Highest rating first
         break;
       case 'Most Chapters':
-        filtered.sort((a, b) => (b.chapters_count || 0) - (a.chapters_count || 0));
+        filtered.sort((a, b) => (b.chapters_count || 0) - (a.chapters_count || 0)); // Most chapters first
         break;
       case 'Recently Updated':
-        filtered.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        filtered.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)); // Most recently updated first
         break;
       default:
         break;
@@ -199,8 +213,8 @@ const Novels = () => {
                             key={index}
                             onClick={() => handleGenreSelect(genre)}
                             className={`text-xs px-2 py-1 rounded-full ${genre === selectedGenre
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
                             {genre}
@@ -279,9 +293,6 @@ const Novels = () => {
                         </span>
                       )}
                       <p className="text-gray-600 text-sm mb-3 line-clamp-2">{novel.synopsis || 'No synopsis available'}</p>
-                      <div className="text-xs text-gray-500">
-                        <span>Updated {new Date(novel.updated_at).toLocaleDateString()}</span>
-                      </div>
                     </div>
                   </Link>
                 </div>
@@ -313,7 +324,7 @@ const Novels = () => {
       </div>
 
       {/* Footer */}
-      <Footer/>
+      <Footer />
     </div>
   );
 };

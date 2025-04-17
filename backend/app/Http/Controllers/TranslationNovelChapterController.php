@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TranslationNovel;
 use App\Models\TranslationNovelChapter;
-use App\Models\TranslationNovel; // Changed from Novel to TranslationNovel
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +16,7 @@ class TranslationNovelChapterController extends Controller
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'novel_id' => 'required|integer|exists:translation_novels,id' // Changed from novels to translation_novels
+            'novel_id' => 'required|integer|exists:translation_novels,id'
         ]);
 
         if ($validator->fails()) {
@@ -52,9 +52,10 @@ class TranslationNovelChapterController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'novel_id' => 'required|integer|exists:translation_novels,id', // Added novel_id validation
+            'novel_id' => 'required|integer|exists:translation_novels,id',
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'chapter_number' => 'sometimes|integer'
         ]);
 
         if ($validator->fails()) {
@@ -72,7 +73,6 @@ class TranslationNovelChapterController extends Controller
                 'content' => $request->content,
             ];
 
-            // Add chapter number if provided
             if ($request->has('chapter_number')) {
                 $chapterData['chapter_number'] = $request->chapter_number;
             }
@@ -87,6 +87,7 @@ class TranslationNovelChapterController extends Controller
                     'novel_id' => $chapter->novel_id,
                     'title' => $chapter->title,
                     'content' => $chapter->content,
+                    'chapter_number' => $chapter->chapter_number,
                     'created_at' => $chapter->created_at,
                     'updated_at' => $chapter->updated_at
                 ]
@@ -117,15 +118,31 @@ class TranslationNovelChapterController extends Controller
                 ], Response::HTTP_NOT_FOUND);
             }
 
+            // Get previous and next chapters
+            $previousChapter = TranslationNovelChapter::where('novel_id', $novelId)
+                ->where('id', '<', $chapter->id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $nextChapter = TranslationNovelChapter::where('novel_id', $novelId)
+                ->where('id', '>', $chapter->id)
+                ->orderBy('id', 'asc')
+                ->first();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Chapter retrieved successfully',
-                'data' => $chapter
+                'data' => [
+                    'chapter' => $chapter,
+                    'previousChapter' => $previousChapter ?? null,
+                    'nextChapter' => $nextChapter ?? null
+                ]
             ], Response::HTTP_OK);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve chapter',
+                'message' => 'Failed to retrieve chapter: ' . $e->getMessage(),
                 'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -139,6 +156,7 @@ class TranslationNovelChapterController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'content' => 'sometimes|string',
+            'chapter_number' => 'sometimes|integer'
         ]);
 
         if ($validator->fails()) {
@@ -154,7 +172,7 @@ class TranslationNovelChapterController extends Controller
                 ->where('novel_id', $novelId)
                 ->first();
 
-            if (!TranslationNovel::where('id', $novelId)->exists()) { // Changed from Novel to TranslationNovel
+            if (!TranslationNovel::where('id', $novelId)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Novel not found'

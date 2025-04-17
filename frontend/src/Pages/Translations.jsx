@@ -15,24 +15,36 @@ const Translations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedGenre, setSelectedGenre] = useState('All');
   const [selectedSort, setSelectedSort] = useState('Latest');
 
   // Get base URL from environment variables
   const baseUrl = process.env.REACT_APP_BASE_URL || '';
 
-  const languages = ['All', 'Korean', 'Chinese', 'Japanese', 'English', 'Spanish'];
-  const statuses = ['All', 'Ongoing', 'Completed', 'Hiatus'];
+  const genres = ['All', 'Fantasy', 'Sci-Fi', 'Action', 'Romance', 'Adventure', 'History', 'Mystery', 'Thriller'];
   const sortOptions = ['Latest', 'Popular', 'Rating', 'Most Chapters', 'Recently Updated'];
 
   useEffect(() => {
-    const fetchTranslations = async () => {
+    const fetchNovels = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/api/translation_novel`);
-        // Filter to only include published translations
-        const publishedTranslations = response.data.data.filter(translation => translation.status === 'published');
-        setTranslations(publishedTranslations);
-        setFilteredTranslations(publishedTranslations);
+        const novelResponse = await axios.get(`${baseUrl}/api/translation_novel`);
+        const publishedNovels = novelResponse.data.data.filter(novel => novel.status === 'published');
+
+        // For each novel, fetch its chapters and count them
+        const novelsWithChapters = await Promise.all(publishedNovels.map(async (novel) => {
+          try {
+            const chapterRes = await axios.get(`${baseUrl}/api/translation_novel/${novel.id}/chapter?novel_id=${novel.id}`);
+            const chapterCount = chapterRes.data.data.length;
+            console.log(`novel id (${novel.id}) :`,chapterCount)
+            return { ...novel, chapters_count: chapterCount };
+          } catch (err) {
+            console.error(`Failed to fetch chapters for novel ID ${novel.id}`, err);
+            return { ...novel, chapters_count: 0 }; // fallback to 0 if failed
+          }
+        }));
+
+        setTranslations(novelsWithChapters);
+        setFilteredTranslations(novelsWithChapters);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -40,10 +52,10 @@ const Translations = () => {
       }
     };
 
-    fetchTranslations();
+    fetchNovels();
   }, [baseUrl]);
 
-  // Filter translations by language and status
+  // Filter translations by language and genre
   useEffect(() => {
     let filtered = [...translations];
 
@@ -54,10 +66,10 @@ const Translations = () => {
       );
     }
 
-    // Apply status filter
-    if (selectedStatus !== 'All') {
+    // Apply genre filter
+    if (selectedGenre !== 'All') {
       filtered = filtered.filter(translation =>
-        translation.status && translation.status.toLowerCase() === selectedStatus.toLowerCase()
+        translation.genre && translation.genre.toLowerCase() === selectedGenre.toLowerCase()
       );
     }
 
@@ -83,14 +95,15 @@ const Translations = () => {
     }
 
     setFilteredTranslations(filtered);
-  }, [selectedLanguage, selectedStatus, selectedSort, translations]);
+  }, [selectedLanguage, selectedGenre, selectedSort, translations]);
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);
   };
 
-  const handleStatusSelect = (status) => {
-    setSelectedStatus(status);
+  const handleGenreSelect = (genre) => {
+    setSelectedGenre(genre);
+    setFilterOpen(false);
   };
 
   const handleSortSelect = (sortOption) => {
@@ -100,7 +113,7 @@ const Translations = () => {
 
   const clearFilters = () => {
     setSelectedLanguage('All');
-    setSelectedStatus('All');
+    setSelectedGenre('All');
     setFilterOpen(false);
   };
 
@@ -176,11 +189,11 @@ const Translations = () => {
                 Translated Works
               </h1>
               <p className="text-gray-600 mt-1">Discover webnovels translated from various languages</p>
-              {(selectedLanguage !== 'All' || selectedStatus !== 'All') && (
+              {(selectedLanguage !== 'All' || selectedGenre !== 'All') && (
                 <p className="text-sm text-gray-500 mt-1">
                   Filtered by:
                   {selectedLanguage !== 'All' && ` ${selectedLanguage}`}
-                  {selectedStatus !== 'All' && ` ${selectedStatus}`}
+                  {selectedGenre !== 'All' && ` ${selectedGenre}`}
                 </p>
               )}
             </div>
@@ -218,40 +231,23 @@ const Translations = () => {
                 {filterOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-3 px-4 z-10">
                     <div className="mb-3">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Original Language</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Genre</h4>
                       <div className="flex flex-wrap gap-2">
-                        {languages.map((language, index) => (
+                        {genres.map((genre, index) => (
                           <button
                             key={index}
-                            onClick={() => handleLanguageSelect(language)}
-                            className={`text-xs px-2 py-1 rounded-full ${language === selectedLanguage
+                            onClick={() => handleGenreSelect(genre)}
+                            className={`text-xs px-2 py-1 rounded-full ${genre === selectedGenre
                               ? 'bg-indigo-600 text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
-                            {language}
+                            {genre}
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div className="mb-3">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Status</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {statuses.map((status, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleStatusSelect(status)}
-                            className={`text-xs px-2 py-1 rounded-full ${status === selectedStatus
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                              }`}
-                          >
-                            {status}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {(selectedLanguage !== 'All' || selectedStatus !== 'All') && (
+                    {(selectedLanguage !== 'All' || selectedGenre !== 'All') && (
                       <button
                         onClick={clearFilters}
                         className="w-full mt-2 text-xs px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -274,11 +270,11 @@ const Translations = () => {
           <div className="text-center py-12">
             <h3 className="text-lg font-medium text-gray-900">No translations found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {selectedLanguage !== 'All' || selectedStatus !== 'All'
+              {selectedLanguage !== 'All' || selectedGenre !== 'All'
                 ? `No translations match your filters. Try different filters.`
                 : 'No translations available at the moment.'}
             </p>
-            {(selectedLanguage !== 'All' || selectedStatus !== 'All') && (
+            {(selectedLanguage !== 'All' || selectedGenre !== 'All') && (
               <button
                 onClick={clearFilters}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
@@ -330,9 +326,6 @@ const Translations = () => {
                         </span>
                       )}
                       <p className="text-gray-600 text-sm mb-3 line-clamp-2">{novel.synopsis || 'No synopsis available'}</p>
-                      <div className="text-xs text-gray-500">
-                        <span>Updated {new Date(novel.updated_at).toLocaleDateString()}</span>
-                      </div>
                     </div>
                   </Link>
                 </div>

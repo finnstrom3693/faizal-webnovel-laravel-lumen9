@@ -11,6 +11,7 @@ import TranslationChapterPage from "./Pages/TranslationChapterPage";
 import Updates from "./Pages/Updates.jsx";
 import Login from "./Pages/Login.jsx"
 import Register from "./Pages/Register.jsx"
+import SearchPage from "./Pages/SearchPage.jsx";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/novel/:novelId/chapter/:chapterId" element={<ChapterPage />} />
         <Route path="/translation-novel/:novelId/chapter/:chapterId" element={<TranslationChapterPage />} />
         <Route path="/updates" element={<Updates/>} />
+        <Route path="/search" element={<SearchPage />} />
         
         {/* User */}
         <Route path="/login" element={<Login/>} />

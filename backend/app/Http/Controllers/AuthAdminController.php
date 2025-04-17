@@ -14,14 +14,15 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthAdminController extends Controller
 {
-    /**
-     * Get the admin guard to be used during authentication.
-     *
-     * @return \Illuminate\Contracts\Auth\Guard
-     */
+    public function __construct()
+    {
+        $this->middleware('auth:admin', ['except' => ['login', 'register']]);
+        auth()->shouldUse('admin'); // Force the admin guard globally
+    }
+
     protected function guard()
     {
-        return Auth::guard('admin'); // Changed to 'admin' guard
+        return Auth::guard('admin');
     }
 
     public function register(Request $request)
@@ -113,11 +114,11 @@ class AuthAdminController extends Controller
         }
     }
 
-    public function me()
+    public function me(Request $request)
     {
         try {
             $admin = $this->guard()->user();
-            
+
             if (!$admin) {
                 return response()->json([
                     'success' => false,
@@ -137,11 +138,19 @@ class AuthAdminController extends Controller
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         try {
-            $this->guard()->logout();
-            
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token not provided'
+                ], 401);
+            }
+
+            auth('admin')->setToken($token)->invalidate();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Successfully logged out'
@@ -149,15 +158,16 @@ class AuthAdminController extends Controller
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to logout, please try again.'
+                'message' => 'Failed to logout, please try again.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    public function refresh()
+    public function refresh(Request $request)
     {
         try {
-            $token = $this->guard()->refresh();
+            $token = auth('admin')->setToken($request->bearerToken())->refresh();
             return $this->respondWithToken($token, 'Admin token refreshed successfully');
         } catch (JWTException $e) {
             return response()->json([

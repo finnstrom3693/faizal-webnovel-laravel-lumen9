@@ -46,8 +46,8 @@ class TranslationNovelController extends Controller
 
         if ($request->hasFile('cover')) {
             $file = $request->file('cover');
-            $path = 'covers/' . time() . '_' . $file->getClientOriginalName();
-            $file->move(storage_path('app/public/covers'), $file->getClientOriginalName());
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('covers', $filename, 'public');
             $data['cover'] = $path;
         }
 
@@ -134,7 +134,8 @@ class TranslationNovelController extends Controller
 
             // Save new cover
             $file = $request->file('cover');
-            $path = $file->store('covers', 'public');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('covers', $filename, 'public');
             $data['cover'] = $path;
         }
 
@@ -146,6 +147,7 @@ class TranslationNovelController extends Controller
             'data' => $novel,
         ]);
     }
+
     // Delete a novel
     public function destroy($id)
     {
@@ -159,8 +161,8 @@ class TranslationNovelController extends Controller
         }
 
         // Delete associated cover image if exists
-        if ($novel->cover && file_exists(storage_path('app/public/' . $novel->cover))) {
-            unlink(storage_path('app/public/' . $novel->cover));
+        if ($novel->cover && Storage::disk('public')->exists($novel->cover)) {
+            Storage::disk('public')->delete($novel->cover);
         }
 
         $novel->delete();
@@ -168,6 +170,30 @@ class TranslationNovelController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Novel deleted successfully.',
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $title = $request->input('title');
+
+        $results = TranslationNovel::where('title', 'like', '%' . $title . '%')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
         ]);
     }
 }

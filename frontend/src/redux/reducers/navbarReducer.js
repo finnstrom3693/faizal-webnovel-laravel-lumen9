@@ -9,7 +9,8 @@ const initialState = {
     mobileMenuOpen: false,
     isDropdownOpen: false,
     isLoggedIn: false,
-    user: null
+    user: null,
+    searchQuery: ''
 };
 
 const navbarReducer = (state = initialState, action) => {
@@ -34,8 +35,12 @@ const navbarReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLoggedIn: false,
-                user: null,
-                isDropdownOpen: false
+                user: null
+            };
+        case 'SET_SEARCH_QUERY':
+            return {
+                ...state,
+                searchQuery: action.payload
             };
         default:
             return state;

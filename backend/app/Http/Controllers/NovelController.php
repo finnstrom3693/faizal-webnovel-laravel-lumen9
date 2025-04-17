@@ -170,4 +170,28 @@ class NovelController extends Controller
             'message' => 'Novel deleted successfully.',
         ]);
     }
+
+    public function search(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $title = $request->input('title');
+
+        $results = Novel::where('title', 'like', '%' . $title . '%')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
+        ]);
+    }
 }

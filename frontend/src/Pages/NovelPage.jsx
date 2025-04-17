@@ -54,8 +54,8 @@ const NovelPage = () => {
           console.log("chapter novel data", novelResponse.data)
 
           if (chaptersResponse.data.success) {
-            // Sort chapters by created_at in ascending order (oldest first)
-            const sortedChapters = chaptersResponse.data.data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            // Sort chapters by created_at in descending order (oldest first)
+            const sortedChapters = chaptersResponse.data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             setChapters(sortedChapters);
           } else {
             setError('Failed to load chapters');
