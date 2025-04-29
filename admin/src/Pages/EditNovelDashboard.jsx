@@ -604,7 +604,7 @@ const EditNovelDashboard = () => {
                     <span className="font-medium">{chapter.title}</span>
                     <div className="flex space-x-4">
                       <a
-                        href={`${window.location.origin}/novel/${novel.id}/chapter/${chapter.id}`}
+                        href={`${process.env.FRONTEND_BASE_URL}/novel/${novel.id}/chapter/${chapter.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline"

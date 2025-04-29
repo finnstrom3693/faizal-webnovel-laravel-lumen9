@@ -379,7 +379,14 @@ const TranslationNovelListDashboard = () => {
                                 <button
                                   className="text-indigo-600 hover:text-indigo-900"
                                   title="View Novel"
-                                  onClick={() => navigate(`/admin/translation-novel/view/${novel.id}`)}
+                                  onClick={() => {
+                                    if (novel.id) {
+                                      // Use navigate for internal routes if it's an SPA (Single Page App)
+                                      window.location.href = `${process.env.FRONTEND_BASE_URL}/translation-novel/${novel.id}`;
+                                    } else {
+                                      console.error("Novel ID is undefined");
+                                    }
+                                  }}
                                 >
                                   <Eye className="h-5 w-5" />
                                 </button>

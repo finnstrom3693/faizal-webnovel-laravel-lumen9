@@ -379,10 +379,18 @@ const NovelListDashboard = () => {
                                 <button
                                   className="text-indigo-600 hover:text-indigo-900"
                                   title="View Novel"
-                                  onClick={() => navigate(`/admin/novel/view/${novel.id}`)}
+                                  onClick={() => {
+                                    if (novel.id) {
+                                      // Use navigate for internal routes if it's an SPA (Single Page App)
+                                      window.location.href = `${process.env.FRONTEND_BASE_URL}/novel/${novel.id}`;
+                                    } else {
+                                      console.error("Novel ID is undefined");
+                                    }
+                                  }}
                                 >
                                   <Eye className="h-5 w-5" />
                                 </button>
+
                                 <button
                                   className="text-green-600 hover:text-green-900"
                                   title="Edit Novel"
@@ -441,7 +449,7 @@ const NovelListDashboard = () => {
           )}
         </main>
       </div>
-    </div>
+    </div >
   );
 };
 

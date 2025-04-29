@@ -1,16 +1,20 @@
+// navbarReducer.js
 import {
     TOGGLE_MOBILE_MENU,
     TOGGLE_DROPDOWN,
     LOGIN_USER,
-    LOGOUT_USER
+    LOGOUT_USER,
+    SET_SEARCH_QUERY,
+    LOGIN_FAILED
 } from '../actions/navbarActions.js';
 
 const initialState = {
     mobileMenuOpen: false,
     isDropdownOpen: false,
-    isLoggedIn: false,
+    isLoggedIn: !!(localStorage.getItem('token') || sessionStorage.getItem('token')),
     user: null,
-    searchQuery: ''
+    searchQuery: '',
+    error: null
 };
 
 const navbarReducer = (state = initialState, action) => {
@@ -29,18 +33,25 @@ const navbarReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLoggedIn: true,
-                user: action.payload
+                user: action.payload.user,
+                error: null
             };
         case LOGOUT_USER:
             return {
                 ...state,
                 isLoggedIn: false,
-                user: null
+                user: null,
+                error: null
             };
-        case 'SET_SEARCH_QUERY':
+        case SET_SEARCH_QUERY:
             return {
                 ...state,
                 searchQuery: action.payload
+            };
+        case LOGIN_FAILED:
+            return {
+                ...state,
+                error: action.payload
             };
         default:
             return state;

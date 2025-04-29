@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
@@ -16,16 +16,20 @@ import {
 import {
   toggleMobileMenu,
   toggleDropdown,
-  loginUser,
   logoutUser,
-  setSearchQuery
-} from '../redux/actions/navbarActions';
+  setSearchQuery,
+  checkAuth
+} from '../redux/actions/navbarActions.js';
 
 const Navbar = ({ currentPage }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { mobileMenuOpen, isDropdownOpen, isLoggedIn, user } = useSelector(state => state.navbar);
   const [searchInput, setSearchInput] = useState('');
+
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, [dispatch]);
 
   const handleToggleMobileMenu = () => {
     dispatch(toggleMobileMenu());
@@ -38,6 +42,7 @@ const Navbar = ({ currentPage }) => {
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       dispatch(logoutUser());
+      navigate('/');
     }
   };
 
@@ -52,7 +57,6 @@ const Navbar = ({ currentPage }) => {
       navigate(`/search?query=${encodeURIComponent(searchInput)}`);
       setSearchInput('');
       
-      // Close mobile menu if open
       if (mobileMenuOpen) {
         dispatch(toggleMobileMenu());
       }
@@ -61,6 +65,12 @@ const Navbar = ({ currentPage }) => {
 
   const isActive = (path) => {
     return currentPage === path;
+  };
+
+  // Get display name based on available user data
+  const getDisplayName = () => {
+    if (!user) return '';
+    return user.display_name || user.username || user.email.split('@')[0];
   };
 
   return (
@@ -119,7 +129,7 @@ const Navbar = ({ currentPage }) => {
                   className="flex items-center space-x-1 bg-indigo-700 hover:bg-indigo-600 rounded-full px-3 py-1"
                 >
                   <User className="h-5 w-5" />
-                  <span>{user?.name}</span>
+                  <span>{getDisplayName()}</span>
                 </button>
                 
                 {isDropdownOpen && (

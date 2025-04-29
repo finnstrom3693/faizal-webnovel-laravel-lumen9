@@ -14,17 +14,23 @@ class CreateBookmarksTable extends Migration
     public function up()
     {
         Schema::create('bookmarks', function (Blueprint $table) {
-            $table->id(); // Integer primary key, auto-incrementing (Laravel's default 'id')
+            $table->id();
+        
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('novel_id');
-            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            
+            // Polymorphic columns
+            $table->unsignedBigInteger('bookmarkable_id');
+            $table->string('bookmarkable_type');
             $table->text('notes')->nullable();
-
+            $table->timestamps();
+        
+            // Foreign key for user
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('novel_id')->references('id')->on('novels')->onDelete('cascade');
-
-            $table->unique(['user_id', 'novel_id']);
+        
+            // Optional: prevent duplicate bookmarks
+            $table->unique(['user_id', 'bookmarkable_id', 'bookmarkable_type']);
         });
+        
     }
 
     /**

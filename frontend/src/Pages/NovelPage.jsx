@@ -6,12 +6,11 @@ import {
   Bookmark,
   Share2,
   Star,
-  MessageCircle,
   Eye,
   Clock,
   ChevronDown,
   ChevronUp,
-  BookOpen
+  BookOpen,
 } from 'lucide-react';
 import axios from 'axios';
 import Navbar from '../Components/Navbar';
@@ -24,38 +23,29 @@ const NovelPage = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [activeTab, setActiveTab] = useState('chapters');
   const [chaptersExpanded, setChaptersExpanded] = useState(true);
-
-  // State for API data
   const [novel, setNovel] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Get base URL from environment variable
+  const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+  const [bookmarkNotes, setBookmarkNotes] = useState('');
   const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:8000';
 
+  // Fetch novel and chapter data
   useEffect(() => {
     const fetchNovelData = async () => {
       try {
         setLoading(true);
-
-        // Fetch novel details
         const novelResponse = await axios.get(`${BASE_URL}/api/novel/${id}`);
-        console.log("novel data", novelResponse.data)
-        console.log("novel id :", id)
         if (novelResponse.data.success) {
           setNovel(novelResponse.data.data);
-
-          // Fetch chapters via GET with query param
           const chaptersResponse = await axios.get(`${BASE_URL}/api/novel/${id}/chapter`, {
-            params: { novel_id: id } // Send as query param
+            params: { novel_id: id },
           });
-
-          console.log("chapter novel data", novelResponse.data)
-
           if (chaptersResponse.data.success) {
-            // Sort chapters by created_at in descending order (oldest first)
-            const sortedChapters = chaptersResponse.data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const sortedChapters = chaptersResponse.data.data.sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            );
             setChapters(sortedChapters);
           } else {
             setError('Failed to load chapters');
@@ -70,21 +60,103 @@ const NovelPage = () => {
         setLoading(false);
       }
     };
-
     if (id) {
       fetchNovelData();
     }
   }, [id, BASE_URL]);
 
-  // Function to handle reading the first chapter
+  // Handle reading the first chapter
   const handleReadFirstChapter = () => {
     if (chapters.length > 0) {
-      // Navigate to the first chapter (oldest by created_at)
       navigate(`/novel/${novel.id}/chapter/${chapters[0].id}`);
     }
   };
 
-  // If loading, show loading spinner
+  // Save bookmark
+  const handleSaveBookmark = async () => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  
+      if (!token) {
+        alert('You are not logged in. Please log in to save bookmarks.');
+        return;
+      }
+  
+      const response = await axios.post(
+        `${BASE_URL}/api/bookmarks`,
+        {
+          bookmarkable_id: novel.id,
+          bookmarkable_type: 'novel',
+          notes: bookmarkNotes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token here
+          },
+        }
+      );
+  
+      if (response.data.success) {
+        alert('Bookmark saved successfully!');
+        setIsBookmarkModalOpen(false); // Close the modal
+        setBookmarkNotes(''); // Clear the notes field
+      } else {
+        alert('Failed to save bookmark. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving bookmark:', error);
+  
+      if (error.response && error.response.status === 401) {
+        alert('Your session has expired. Please log in again.');
+      } else {
+        alert('An error occurred while saving the bookmark.');
+      }
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Truncate description
+  const truncatedDescription = novel?.synopsis && novel.synopsis.length > 300
+    ? `${novel.synopsis.substring(0, 300)}...`
+    : novel?.synopsis;
+
+  // Bookmark Modal
+  const renderBookmarkModal = () => (
+    isBookmarkModalOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-xl font-bold mb-4">Add Bookmark</h2>
+          <textarea
+            value={bookmarkNotes}
+            onChange={(e) => setBookmarkNotes(e.target.value)}
+            placeholder="Write your notes here..."
+            className="w-full h-32 p-2 border border-gray-300 rounded mb-4"
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={() => setIsBookmarkModalOpen(false)}
+              className="bg-gray-200 text-gray-700 px-4 py-2 rounded mr-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveBookmark}
+              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+            >
+              Save Bookmark
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  // Loading State
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -96,14 +168,14 @@ const NovelPage = () => {
     );
   }
 
-  // If error, show error message
+  // Error State
   if (error || !novel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
           <div className="text-red-500 text-4xl mb-4">!</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
-          <p className="text-gray-600">{error || "Novel not found"}</p>
+          <p className="text-gray-600">{error || 'Novel not found'}</p>
           <Link to="/" className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
             Return to Home
           </Link>
@@ -111,16 +183,6 @@ const NovelPage = () => {
       </div>
     );
   }
-
-  const truncatedDescription = novel.synopsis && novel.synopsis.length > 300
-    ? `${novel.synopsis.substring(0, 300).replace(/\n/g, '\n')}...`
-    : novel.synopsis;
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -145,7 +207,7 @@ const NovelPage = () => {
             <div className="md:w-1/4 mb-6 md:mb-0">
               <div className="bg-indigo-100 rounded-lg overflow-hidden shadow-md">
                 <img
-                  src={novel.cover ? `${BASE_URL}/public/${novel.cover}` : "https://placehold.co/300x450"}
+                  src={novel.cover ? `${BASE_URL}/public/${novel.cover}` : 'https://placehold.co/300x450'}
                   alt={novel.title}
                   className="w-full h-auto object-cover"
                 />
@@ -154,12 +216,19 @@ const NovelPage = () => {
                 <button
                   onClick={handleReadFirstChapter}
                   disabled={chapters.length === 0}
-                  className={`${chapters.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-4 py-2 rounded-md flex items-center justify-center w-3/4 mr-2`}
+                  className={`${
+                    chapters.length === 0
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  } text-white px-4 py-2 rounded-md flex items-center justify-center w-3/4 mr-2`}
                 >
                   <BookOpen className="h-4 w-4 mr-2" /> Read First Chapter
                 </button>
-                <button className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md flex items-center justify-center hover:bg-gray-300">
-                  <Bookmark className="h-4 w-4" />
+                <button
+                  onClick={() => setIsBookmarkModalOpen(true)}
+                  className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md flex items-center justify-center hover:bg-gray-300"
+                >
+                  <Bookmark className="h-4 w-4" /> Bookmark
                 </button>
               </div>
               <div className="flex justify-between mt-2">
@@ -175,16 +244,16 @@ const NovelPage = () => {
             {/* Novel Info */}
             <div className="md:w-3/4 md:pl-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{novel.title}</h1>
-
               <div className="flex items-center mb-4">
                 <div className="flex items-center text-yellow-500">
                   <Star className="h-4 w-4 fill-current" />
-                  <span className="ml-1 text-sm">{novel.ratings || "0.0"}</span>
+                  <span className="ml-1 text-sm">{novel.ratings || '0.0'}</span>
                 </div>
               </div>
-
               <div className="text-sm text-gray-600 mb-4">
-                <div><span className="font-medium">Author:</span> {novel.author || "Unknown"}</div>
+                <div>
+                  <span className="font-medium">Author:</span> {novel.author || 'Unknown'}
+                </div>
                 <div className="flex items-center mt-1">
                   <Eye className="h-4 w-4 mr-1" />
                   <span className="mr-3">{novel.views || 0} views</span>
@@ -192,19 +261,18 @@ const NovelPage = () => {
                   <span>Updated {formatDate(novel.updated_at)}</span>
                 </div>
               </div>
-
               <div className="flex flex-wrap mb-4">
-                {novel.genre && novel.genre.split(',').map((genre, index) => (
-                  <Link
-                    key={index}
-                    to={`/genre/${genre.trim().toLowerCase()}`}
-                    className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-medium mr-2 mb-2 hover:bg-indigo-200"
-                  >
-                    {genre.trim()}
-                  </Link>
-                ))}
+                {novel.genre &&
+                  novel.genre.split(',').map((genre, index) => (
+                    <Link
+                      key={index}
+                      to={`/genre/${genre.trim().toLowerCase()}`}
+                      className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-medium mr-2 mb-2 hover:bg-indigo-200"
+                    >
+                      {genre.trim()}
+                    </Link>
+                  ))}
               </div>
-
               <div className="mb-6">
                 <div className="text-gray-700 whitespace-pre-line">
                   {showFullDescription ? novel.synopsis : truncatedDescription}
@@ -233,19 +301,21 @@ const NovelPage = () => {
           <nav className="flex -mb-px">
             <button
               onClick={() => setActiveTab('chapters')}
-              className={`py-4 px-6 text-sm font-medium ${activeTab === 'chapters'
-                ? 'border-b-2 border-indigo-500 text-indigo-600'
-                : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
-                }`}
+              className={`py-4 px-6 text-sm font-medium ${
+                activeTab === 'chapters'
+                  ? 'border-b-2 border-indigo-500 text-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
+              }`}
             >
               Chapters ({chapters.length})
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`py-4 px-6 text-sm font-medium ${activeTab === 'reviews'
-                ? 'border-b-2 border-indigo-500 text-indigo-600'
-                : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
-                }`}
+              className={`py-4 px-6 text-sm font-medium ${
+                activeTab === 'reviews'
+                  ? 'border-b-2 border-indigo-500 text-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
+              }`}
             >
               Reviews (0)
             </button>
@@ -278,10 +348,16 @@ const NovelPage = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Chapter Title
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Release Date
                         </th>
                       </tr>
@@ -290,7 +366,10 @@ const NovelPage = () => {
                       {chapters.map((chapter, index) => (
                         <tr key={chapter.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <Link to={`/novel/${novel.id}/chapter/${chapter.id}`} className="text-indigo-600 hover:text-indigo-900">
+                            <Link
+                              to={`/novel/${novel.id}/chapter/${chapter.id}`}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
                               {chapter.title}
                             </Link>
                           </td>
@@ -302,15 +381,12 @@ const NovelPage = () => {
                     </tbody>
                   </table>
                 ) : (
-                  <div className="py-8 text-center text-gray-500">
-                    No chapters available yet.
-                  </div>
+                  <div className="py-8 text-center text-gray-500">No chapters available yet.</div>
                 )}
               </div>
             )}
           </div>
         )}
-
         {activeTab === 'reviews' && (
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -319,12 +395,13 @@ const NovelPage = () => {
                 Write a Review
               </button>
             </div>
-            <div className="py-8 text-center text-gray-500">
-              No reviews available yet.
-            </div>
+            <div className="py-8 text-center text-gray-500">No reviews available yet.</div>
           </div>
         )}
       </div>
+
+      {/* Render Bookmark Modal */}
+      {renderBookmarkModal()}
 
       <Footer />
     </div>

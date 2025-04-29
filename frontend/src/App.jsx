@@ -12,6 +12,7 @@ import Updates from "./Pages/Updates.jsx";
 import Login from "./Pages/Login.jsx"
 import Register from "./Pages/Register.jsx"
 import SearchPage from "./Pages/SearchPage.jsx";
+import BookmarksPage from "./Pages/BookmarksPage.jsx";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         {/* User */}
         <Route path="/login" element={<Login/>} />
         <Route path="/register" element={<Register/>} />
+        <Route path="/bookmarks" element={<BookmarksPage/>}/>
       </Routes>
     </Router>
   );

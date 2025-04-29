@@ -5,7 +5,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Navbar from '../Components/Navbar.jsx';
 import Footer from '../Components/Footer.jsx';
 import axios from 'axios';
-import { loginUser } from '../redux/actions/navbarActions';
+import { loginUser } from '../redux/actions/navbarActions.js';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -23,28 +23,10 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/api/auth/login`,
-        {
-          email,
-          password
-        }
-      );
-
-      // Handle successful login
-      console.log('Login successful:', response.data);
-      
-      // Store the token if remember me is checked
-      if (rememberMe && response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-      } else if (response.data.token) {
-        sessionStorage.setItem('authToken', response.data.token);
-      }
-      
-      // Update Redux state
-      dispatch(loginUser({
-        name: response.data.user?.name || email.split('@')[0],
-        email: email
+      await dispatch(loginUser({
+        email,
+        password,
+        rememberMe  // Pass rememberMe to the action
       }));
 
       // Redirect to dashboard or home page

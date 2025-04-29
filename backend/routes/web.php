@@ -30,7 +30,6 @@ $router->get('storage/{filename}', function ($filename) {
 });
 
 // Auth Admin Router
-// Auth Admin Router
 $router->group(['prefix' => 'api/auth_admin'], function () use ($router) {
     $router->post('register', 'AuthAdminController@register');
     $router->post('login', 'AuthAdminController@login');
@@ -56,17 +55,17 @@ $router->group(['prefix' => 'api/auth'], function () use ($router) {
     });
 });
 
-// $router->get('api/invite-codes', 'InviteCodesController@index');
-// $router->post('api/invite-codes', 'InviteCodesController@store');
-// $router->get('api/invite-codes/validate/{code}', 'InviteCodesController@validateCode');
-// $router->post('api/invite-codes/use/{code}', 'InviteCodesController@useCode');
+$router->get('api/invite-codes', 'InviteCodesController@index');
+$router->post('api/invite-codes', 'InviteCodesController@store');
+$router->get('api/invite-codes/validate/{code}', 'InviteCodesController@validateCode');
+$router->post('api/invite-codes/use/{code}', 'InviteCodesController@useCode');
 
-$router->group(['prefix' => 'api/invite-codes', 'middleware' => 'auth.admin'], function () use ($router) {
-    $router->get('/', 'InviteCodesController@index');
-    $router->post('/', 'InviteCodesController@store');
-    $router->get('validate/{code}', 'InviteCodesController@validateCode');
-    $router->post('use/{code}', 'InviteCodesController@useCode');
-});
+// $router->group(['prefix' => 'api/invite-codes', 'middleware' => 'auth.admin'], function () use ($router) {
+//     $router->get('/', 'InviteCodesController@index');
+//     $router->post('/', 'InviteCodesController@store');
+//     $router->get('validate/{code}', 'InviteCodesController@validateCode');
+//     $router->post('use/{code}', 'InviteCodesController@useCode');
+// });
 
 // ======================
 // NOVEL ROUTES
@@ -126,4 +125,14 @@ $router->group(['prefix' => 'api/translation_novel'], function () use ($router) 
         $router->get('/', 'TranslationNovelChapterController@index');
         $router->get('{chapterId}', 'TranslationNovelChapterController@show');
     });
+});
+
+// ======================
+// BOOKMARK ROUTES
+// ======================
+$router->group(['prefix' => 'api/bookmarks', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'BookmarksController@index');         // List all bookmarks
+    $router->post('/', 'BookmarksController@store');        // Create a bookmarks
+    $router->put('{id}', 'BookmarksController@update');     // Update a bookmarks
+    $router->delete('{id}', 'BookmarksController@destroy'); // Delete a bookmarks
 });
